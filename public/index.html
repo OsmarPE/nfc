@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NFC Reader Status</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="">
+
+    <header class="header">
+        <div class="container">
+            <div class="header__body">
+                <img class="header__logo" src="logo.svg" alt="logo">
+                <div class="header__status">
+                    <span class="header__title">Estado</span>
+                    <p class="header__subtitle connected" id="status">Conectado</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="card">
+        <div class="card__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-nfc-icon lucide-nfc"><path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/><path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/><path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/><path d="M16.37 2a20.16 20.16 0 0 1 0 20"/></svg>
+        </div>
+        <h1 class="card__title" id="title">Manten tu tarjeta NFC al dispositivo</h1>
+        <p class="card__description">Mantén la tarjeta sobre el lector hasta que veas en la pantalla el numero de tu tarjeta NFC.</p>
+    </div>
+    
+    <script>
+        let eventSource = null;
+        let eventsDiv = document.getElementById('events');
+        const titleElement = document.getElementById('title');
+        const statusElement = document.getElementById('status');
+        let eventsPaused = false;
+        
+        function connectToEvents() {
+            // Conectar a Server-Sent Events
+            eventSource = new EventSource('/api/events');
+            
+            eventSource.onmessage = function(event) {
+                if (eventsPaused) return;
+                
+                const data = JSON.parse(event.data);
+                console.log('Evento recibido:', data);
+                
+                if (data.type === 'connected') {
+                    setStatusConnected();
+                } else {
+                    addEventToDisplay(data);
+                }
+            };
+            
+            eventSource.onerror = function(event) {
+                setStatusDisconnected();
+            };
+        }
+        
+        function addEventToDisplay(data) {
+            if (data.type === 'card_removed'){
+                titleElement.textContent = 'Manten tu tarjeta NFC al dispositivo';
+                
+            }
+            if (data.type === 'card_detected'){
+                titleElement.textContent = `Tarjeta detectada: ${data.data.uid}`;
+            }
+        }
+        
+        function formatEventData(data) {
+            if (data.uid) {
+                return `
+                    <div class="uid-display">UID: ${data.uid}</div>
+                    <small>Tipo: ${data.type || 'N/A'} | Lector: ${data.reader || 'N/A'}</small>
+                `;
+            }
+            return `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+        
+        async function refreshStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                if (data.status){
+                    setStatusConnected();
+                } else {
+                    setStatusDisconnected();
+                }
+
+            } catch (error) {
+                setStatusDisconnected();
+            }
+        }
+
+        function setStatusConnected() {
+            statusElement.textContent = 'Conectado';
+            statusElement.classList.add('connected');
+            statusElement.classList.remove('disconnected');
+        }
+
+        function setStatusDisconnected() {
+            statusElement.textContent = 'Desconectado';
+            statusElement.classList.add('disconnected');
+            statusElement.classList.remove('connected');
+        }
+
+        async function clearHistory() {
+            if (confirm('¿Estás seguro de que quieres limpiar el historial?')) {
+                try {
+                    await fetch('/api/cards/history', { method: 'DELETE' });
+                    eventsDiv.innerHTML = '<p>📭 Historial limpiado</p>';
+                } catch (error) {
+                    console.error('Error clearing history:', error);
+                }
+            }
+        }
+        
+        function toggleEvents() {
+            eventsPaused = !eventsPaused;
+            const button = event.target;
+            
+            if (eventsPaused) {
+                button.textContent = '▶️ Reanudar Eventos';
+                button.style.background = '#28a745';
+            } else {
+                button.textContent = '⏸️ Pausar Eventos';
+                button.style.background = '#007bff';
+            }
+        }
+        
+        // Inicializar conexión
+        connectToEvents();
+        
+        // Auto-refresh del estado cada 30 segundos
+        setInterval(refreshStatus, 5000);
+    </script>
+</body>
+</html>

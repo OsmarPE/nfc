@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Podkova:wght@400..800&display=swap');
+:root{
+    --color-primary: #886780;
+    --color-secondary: rgba(0, 0, 0, 0.4);
+    --color-blue-100: #2EB3B8;
+    --color-danger-100: #D23F3A;
+
+    --font-primary: 'Podkova', serif;
+    --font-secondary: 'Outfit', sans-serif;
+}
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    font-family: var(--font-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--color-secondary);
+}
+
+
+p{
+    font-size: 0.875rem;
+    font-family: var(--font-secondary);
+}
+.header{
+    position: absolute;
+    inset: 0 0 auto 0;
+    
+}
+.container{
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header__body{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    height: 80px;
+}
+
+.header__status{
+    text-align: right;
+}
+
+.header__title{
+    font-size: .875rem;
+}
+.header__subtitle{
+    font-size: .875rem;
+    font-weight: 500;
+}
+
+.header__subtitle.connected{
+    color: var(--color-blue-100);
+}
+
+.header__subtitle.disconnected{
+    color: var(--color-danger-100);
+}
+
+
+.card{
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.card__icon svg{
+    color: var(--color-primary);
+}
+
+.card__title{
+    margin: 1.5rem 0 .5rem;
+    color: var(--color-primary);
+    font-family: var(--font-primary);
+    font-size: 1.75rem;
+}
+
+.card__description{
+    font-size: 1rem;
+
+}
