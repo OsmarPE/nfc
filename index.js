@@ -101,7 +101,7 @@ app.get('/api/events', (req, res) => {
 
     res.write(`data: ${JSON.stringify({
         type: 'connected',
-        readers: nfcReaders.length
+        readers: nfcReaders
     })}\n\n`);
 
     req.on('close', () => {

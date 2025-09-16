@@ -24,7 +24,7 @@
         <div class="card__icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-nfc-icon lucide-nfc"><path d="M6 8.32a7.43 7.43 0 0 1 0 7.36"/><path d="M9.46 6.21a11.76 11.76 0 0 1 0 11.58"/><path d="M12.91 4.1a15.91 15.91 0 0 1 .01 15.8"/><path d="M16.37 2a20.16 20.16 0 0 1 0 20"/></svg>
         </div>
-        <h1 class="card__title" id="title">Manten tu tarjeta NFC al dispositivo</h1>
+        <h1 class="card__title" id="title">Conecte su sensor NFC</h1>
         <p class="card__description">Mantén la tarjeta sobre el lector hasta que veas en la pantalla el numero de tu tarjeta NFC.</p>
     </div>
     
@@ -33,17 +33,16 @@
         let eventsDiv = document.getElementById('events');
         const titleElement = document.getElementById('title');
         const statusElement = document.getElementById('status');
+        const descriptionElement = document.querySelector('.card__description');
         let eventsPaused = false;
         
         function connectToEvents() {
-            // Conectar a Server-Sent Events
+            
             eventSource = new EventSource('/api/events');
             
             eventSource.onmessage = function(event) {
-                if (eventsPaused) return;
                 
                 const data = JSON.parse(event.data);
-                console.log('Evento recibido:', data);
                 
                 if (data.type === 'connected') {
                     setStatusConnected();
@@ -93,46 +92,34 @@
             }
         }
 
+        let status = null;
+
         function setStatusConnected() {
             statusElement.textContent = 'Conectado';
             statusElement.classList.add('connected');
             statusElement.classList.remove('disconnected');
+            descriptionElement.classList.add('show');
+            if (status !== 'connected') {
+                titleElement.textContent = 'Manten tu tarjeta NFC al dispositivo';
+            }
+            status = 'connected';
         }
 
         function setStatusDisconnected() {
             statusElement.textContent = 'Desconectado';
             statusElement.classList.add('disconnected');
             statusElement.classList.remove('connected');
+            descriptionElement.classList.remove('show');
+            if (titleElement.textContent !== 'Conecte su sensor NFC'){
+                titleElement.textContent = 'Conecte su sensor NFC';
+            }
+            
+            status = 'disconnected';
+
         }
 
-        async function clearHistory() {
-            if (confirm('¿Estás seguro de que quieres limpiar el historial?')) {
-                try {
-                    await fetch('/api/cards/history', { method: 'DELETE' });
-                    eventsDiv.innerHTML = '<p>📭 Historial limpiado</p>';
-                } catch (error) {
-                    console.error('Error clearing history:', error);
-                }
-            }
-        }
-        
-        function toggleEvents() {
-            eventsPaused = !eventsPaused;
-            const button = event.target;
-            
-            if (eventsPaused) {
-                button.textContent = '▶️ Reanudar Eventos';
-                button.style.background = '#28a745';
-            } else {
-                button.textContent = '⏸️ Pausar Eventos';
-                button.style.background = '#007bff';
-            }
-        }
-        
-        // Inicializar conexión
         connectToEvents();
         
-        // Auto-refresh del estado cada 30 segundos
         setInterval(refreshStatus, 5000);
     </script>
 </body>

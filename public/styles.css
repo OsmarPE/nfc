@@ -90,3 +90,10 @@ p{
     font-size: 1rem;
 
 }
+.card__description{
+    display: none;
+}
+
+.card__description.show{
+    display: block;
+}
